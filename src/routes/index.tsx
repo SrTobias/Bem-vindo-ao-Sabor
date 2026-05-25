@@ -7,7 +7,7 @@ import { ModeForm } from "@/components/ModeForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/")({ component: Index });
+export const Route = createFileRoute("/")({ component: Index, ssr: false });
 
 function Index() {
   const { user, loading } = useAuth();

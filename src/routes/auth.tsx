@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ChefHat, Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/auth")({ component: AuthPage });
+export const Route = createFileRoute("/auth")({ component: AuthPage, ssr: false });
 
 function AuthPage() {
   const { user, loading } = useAuth();
