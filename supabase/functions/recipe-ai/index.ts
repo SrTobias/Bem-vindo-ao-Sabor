@@ -28,17 +28,24 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { mode, disliked, pantry, dish } = parsed.data;
+    const { mode, disliked, pantry, dish, diet } = parsed.data;
+
+    const dietText =
+      diet === "vegan"
+        ? "O utilizador é VEGANO. NÃO uses carne, peixe, marisco, ovos, laticínios, mel ou qualquer produto de origem animal. Usa apenas ingredientes de origem vegetal."
+        : diet === "vegetarian"
+        ? "O utilizador é VEGETARIANO. NÃO uses carne, peixe ou marisco. Podes usar ovos, leite, queijo e outros laticínios."
+        : "";
 
     const dislikedTxt = disliked.length ? `O utilizador NÃO gosta destes ingredientes (evita-os SEMPRE): ${disliked.join(", ")}.` : "";
 
     let userPrompt = "";
     if (mode === "pantry") {
-      userPrompt = `${dislikedTxt}\nIngredientes disponíveis em casa: ${(pantry ?? []).join(", ")}.\nSugere UM prato que se possa cozinhar maioritariamente com estes ingredientes (podes assumir sal, pimenta, azeite, água). Indica claramente se faltam ingredientes essenciais.`;
+      userPrompt = `${dietText}\n${dislikedTxt}\nIngredientes disponíveis em casa: ${(pantry ?? []).join(", ")}.\nSugere UM prato que se possa cozinhar maioritariamente com estes ingredientes (podes assumir sal, pimenta, azeite, água). Indica claramente se faltam ingredientes essenciais.`;
     } else if (mode === "dish") {
-      userPrompt = `${dislikedTxt}\nO utilizador quer fazer: "${dish}".\nDá a receita completa. Lista todos os ingredientes necessários (com quantidades).`;
+      userPrompt = `${dietText}\n${dislikedTxt}\nO utilizador quer fazer: "${dish}".\nDá a receita completa respeitando o regime alimentar. Lista todos os ingredientes necessários (com quantidades).`;
     } else {
-      userPrompt = `${dislikedTxt}\nSugere um prato delicioso e variado à escolha (cozinha portuguesa, mediterrânica ou internacional). Surpreende!`;
+      userPrompt = `${dietText}\n${dislikedTxt}\nSugere um prato delicioso e variado à escolha (cozinha portuguesa, mediterrânica ou internacional). Surpreende!`;
     }
 
     const tool = {
