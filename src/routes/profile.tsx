@@ -46,6 +46,8 @@ function ProfilePage() {
           </CardContent>
         </Card>
 
+        <DietSelector />
+
         <DislikedIngredients />
       </main>
     </div>
