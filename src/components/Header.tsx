@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ChefHat, Heart, LogOut } from "lucide-react";
+import { ChefHat, Heart, LogOut, User } from "lucide-react";
 
 export function Header() {
   const { user } = useAuth();
@@ -25,6 +25,9 @@ export function Header() {
             <>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/favorites"><Heart className="h-4 w-4" /> Favoritos</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/profile"><User className="h-4 w-4" /> Perfil</Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="h-4 w-4" />

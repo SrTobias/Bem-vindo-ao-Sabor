@@ -40,6 +40,20 @@ function AuthPage() {
     else toast.success("Conta criada! Verifica o teu email.");
   };
 
+  const forgotPassword = async () => {
+    if (!email) {
+      toast.error("Introduz o teu email primeiro");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else toast.success("Email de recuperação enviado!");
+  };
+
   const google = async () => {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (r.error) toast.error("Erro no Google sign-in");
@@ -67,6 +81,14 @@ function AuthPage() {
               <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} /></div>
               <div><Label>Palavra-passe</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
               <Button className="w-full" onClick={signIn} disabled={busy}>{busy ? "..." : "Entrar"}</Button>
+              <button
+                type="button"
+                onClick={forgotPassword}
+                disabled={busy}
+                className="w-full text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+              >
+                Esqueci-me da palavra-passe
+              </button>
             </TabsContent>
             <TabsContent value="signup" className="space-y-3 mt-4">
               <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} /></div>
