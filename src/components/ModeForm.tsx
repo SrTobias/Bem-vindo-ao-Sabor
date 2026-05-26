@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ChipInput } from "@/components/ChipInput";
 import { RecipeDisplay, type Recipe } from "@/components/RecipeDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import { useDisliked } from "@/components/DislikedIngredients";
+import { useProfilePrefs } from "@/components/DislikedIngredients";
 import { toast } from "sonner";
 import { Sparkles, Loader2, MapPin, ExternalLink, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ interface Place {
 }
 
 export function ModeForm({ mode }: { mode: Mode }) {
-  const disliked = useDisliked();
+  const { disliked, diet } = useProfilePrefs();
   const [pantry, setPantry] = useState<string[]>([]);
   const [dish, setDish] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export function ModeForm({ mode }: { mode: Mode }) {
     setRecipe(null);
     setPlaces([]);
     const { data, error } = await supabase.functions.invoke("recipe-ai", {
-      body: { mode, disliked, pantry, dish: dish.trim() },
+      body: { mode, disliked, pantry, dish: dish.trim(), diet },
     });
     setLoading(false);
     if (error || data?.error) {
