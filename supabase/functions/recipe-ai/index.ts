@@ -11,6 +11,7 @@ const BodySchema = z.object({
   disliked: z.array(z.string()).max(100).default([]),
   pantry: z.array(z.string()).max(100).optional(),
   dish: z.string().max(200).optional(),
+  diet: z.enum(["omnivore", "vegetarian", "vegan"]).default("omnivore"),
 });
 
 Deno.serve(async (req) => {
