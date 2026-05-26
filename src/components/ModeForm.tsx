@@ -25,7 +25,7 @@ interface Place {
 }
 
 export function ModeForm({ mode }: { mode: Mode }) {
-  const disliked = useDisliked();
+  const { disliked, diet } = useProfilePrefs();
   const [pantry, setPantry] = useState<string[]>([]);
   const [dish, setDish] = useState("");
   const [loading, setLoading] = useState(false);
