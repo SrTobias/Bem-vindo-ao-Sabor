@@ -40,7 +40,7 @@ export function ModeForm({ mode }: { mode: Mode }) {
     setRecipe(null);
     setPlaces([]);
     const { data, error } = await supabase.functions.invoke("recipe-ai", {
-      body: { mode, disliked, pantry, dish: dish.trim() },
+      body: { mode, disliked, pantry, dish: dish.trim(), diet },
     });
     setLoading(false);
     if (error || data?.error) {
