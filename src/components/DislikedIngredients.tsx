@@ -73,3 +73,24 @@ export function useDisliked() {
   }, [user]);
   return disliked;
 }
+
+export function useProfilePrefs() {
+  const { user } = useAuth();
+  const [disliked, setDisliked] = useState<string[]>([]);
+  const [diet, setDiet] = useState<"omnivore" | "vegetarian" | "vegan">("omnivore");
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("disliked_ingredients, diet")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.disliked_ingredients) setDisliked(data.disliked_ingredients);
+        if (data?.diet) setDiet(data.diet as "omnivore" | "vegetarian" | "vegan");
+      });
+  }, [user]);
+
+  return { disliked, diet };
+}
