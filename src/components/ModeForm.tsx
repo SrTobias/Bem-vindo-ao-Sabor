@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ChipInput } from "@/components/ChipInput";
 import { RecipeDisplay, type Recipe } from "@/components/RecipeDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import { useDisliked } from "@/components/DislikedIngredients";
+import { useProfilePrefs } from "@/components/DislikedIngredients";
 import { toast } from "sonner";
 import { Sparkles, Loader2, MapPin, ExternalLink, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
