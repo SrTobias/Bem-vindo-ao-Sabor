@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
-import { DislikedIngredients } from "@/components/DislikedIngredients";
+
 import { ModeForm } from "@/components/ModeForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
@@ -35,8 +35,6 @@ function Index() {
             Diz-nos o que tens, o que apetece, ou deixa-nos surpreender-te.
           </p>
         </section>
-
-        <DislikedIngredients />
 
         <Tabs defaultValue="pantry" className="w-full">
           <TabsList className="grid grid-cols-3 w-full h-auto">
