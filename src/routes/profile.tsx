@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { DislikedIngredients } from "@/components/DislikedIngredients";
 import { DietSelector } from "@/components/DietSelector";
+import { ThemeSelector } from "@/components/ThemeSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, User } from "lucide-react";
 
