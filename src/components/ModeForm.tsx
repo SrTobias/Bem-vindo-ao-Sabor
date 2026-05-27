@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfilePrefs } from "@/components/DislikedIngredients";
 import { toast } from "sonner";
 import { Sparkles, Loader2, MapPin, ExternalLink, Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Mode = "pantry" | "dish" | "surprise";
 
@@ -24,6 +24,18 @@ interface Place {
   location?: { latitude: number; longitude: number };
 }
 
+type SortBy = "distance" | "rating";
+
+function distanceKm(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }) {
+  const R = 6371;
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLon = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.latitude * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
 export function ModeForm({ mode }: { mode: Mode }) {
   const { disliked, diet } = useProfilePrefs();
   const [pantry, setPantry] = useState<string[]>([]);
@@ -32,6 +44,10 @@ export function ModeForm({ mode }: { mode: Mode }) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
   const [findingPlaces, setFindingPlaces] = useState(false);
+  const [userLoc, setUserLoc] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [sortBy, setSortBy] = useState<SortBy>("distance");
+
+  const showPlaces = mode === "dish" || mode === "surprise";
 
   const generate = async () => {
     if (mode === "pantry" && pantry.length === 0) return toast.error("Adiciona alguns ingredientes");
@@ -55,6 +71,7 @@ export function ModeForm({ mode }: { mode: Mode }) {
     setFindingPlaces(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        setUserLoc({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
         const { data, error } = await supabase.functions.invoke("find-supermarkets", {
           body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, radius: 5000 },
         });
@@ -69,6 +86,14 @@ export function ModeForm({ mode }: { mode: Mode }) {
       },
     );
   };
+
+  const sortedPlaces = [...places].sort((a, b) => {
+    if (sortBy === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
+    if (userLoc && a.location && b.location) {
+      return distanceKm(userLoc, a.location) - distanceKm(userLoc, b.location);
+    }
+    return 0;
+  });
 
   return (
     <div>
@@ -122,9 +147,22 @@ export function ModeForm({ mode }: { mode: Mode }) {
         <RecipeDisplay
           recipe={recipe}
           extra={
-            mode === "dish" ? (
+            showPlaces ? (
               <div>
-                <h3 className="font-display text-xl mb-2">Onde comprar perto de ti</h3>
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <h3 className="font-display text-xl">Onde comprar perto de ti</h3>
+                  {places.length > 0 && (
+                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+                      <SelectTrigger className="w-44">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="distance">Mais perto</SelectItem>
+                        <SelectItem value="rating">Melhor avaliados</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
                 {places.length === 0 ? (
                   <Button onClick={findSupermarkets} disabled={findingPlaces} variant="outline">
                     {findingPlaces ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
@@ -132,24 +170,30 @@ export function ModeForm({ mode }: { mode: Mode }) {
                   </Button>
                 ) : (
                   <ul className="space-y-2">
-                    {places.map((p) => (
-                      <li key={p.id} className="flex justify-between items-start gap-3 p-3 rounded-md border bg-card">
-                        <div>
-                          <div className="font-medium">{p.displayName?.text}</div>
-                          <div className="text-sm text-muted-foreground">{p.formattedAddress}</div>
-                          {p.rating && (
-                            <div className="text-xs flex items-center gap-1 mt-1">
-                              <Star className="h-3 w-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
+                    {sortedPlaces.map((p) => {
+                      const dist = userLoc && p.location ? distanceKm(userLoc, p.location) : null;
+                      return (
+                        <li key={p.id} className="flex justify-between items-start gap-3 p-3 rounded-md border bg-card">
+                          <div>
+                            <div className="font-medium">{p.displayName?.text}</div>
+                            <div className="text-sm text-muted-foreground">{p.formattedAddress}</div>
+                            <div className="text-xs flex items-center gap-3 mt-1 text-muted-foreground">
+                              {p.rating && (
+                                <span className="flex items-center gap-1">
+                                  <Star className="h-3 w-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
+                                </span>
+                              )}
+                              {dist !== null && <span>{dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`}</span>}
                             </div>
+                          </div>
+                          {p.googleMapsUri && (
+                            <a href={p.googleMapsUri} target="_blank" rel="noreferrer" className="text-sm text-primary inline-flex items-center gap-1 shrink-0">
+                              Ver <ExternalLink className="h-3 w-3" />
+                            </a>
                           )}
-                        </div>
-                        {p.googleMapsUri && (
-                          <a href={p.googleMapsUri} target="_blank" rel="noreferrer" className="text-sm text-primary inline-flex items-center gap-1 shrink-0">
-                            Ver <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
