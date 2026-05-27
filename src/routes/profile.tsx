@@ -49,6 +49,8 @@ function ProfilePage() {
 
         <DietSelector />
 
+        <ThemeSelector />
+
         <DislikedIngredients />
       </main>
     </div>
