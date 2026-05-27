@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, Link, createRootRouteWithContext, useRouter, HeadContent, Scripts } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { applyTheme, getStoredTheme } from "@/lib/themes";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -68,6 +70,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    applyTheme(getStoredTheme());
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
