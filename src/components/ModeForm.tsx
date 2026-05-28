@@ -8,14 +8,14 @@ import { RecipeDisplay, type Recipe } from "@/components/RecipeDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfilePrefs } from "@/components/DislikedIngredients";
 import { toast } from "sonner";
-import { Sparkles, Loader2, MapPin, ExternalLink, Star } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 import { Sparkles, Loader2, MapPin, ExternalLink, Star, Wallet, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PriceItem { name: string; estimated_eur: number; note?: string }
 interface PriceEstimate { items: PriceItem[]; total_eur: number; disclaimer?: string }
+
+type Mode = "pantry" | "dish" | "surprise";
+
 const PANTRY_SUGGESTIONS = ["ovos", "arroz", "massa", "tomate", "cebola", "alho", "frango", "batata", "atum", "feijão"];
 
 interface Place {
