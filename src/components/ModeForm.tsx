@@ -49,6 +49,20 @@ export function ModeForm({ mode }: { mode: Mode }) {
   const [findingPlaces, setFindingPlaces] = useState(false);
   const [userLoc, setUserLoc] = useState<{ latitude: number; longitude: number } | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("distance");
+  const [estimate, setEstimate] = useState<PriceEstimate | null>(null);
+  const [estimating, setEstimating] = useState(false);
+
+  const estimatePrices = async () => {
+    if (!recipe) return;
+    setEstimating(true);
+    setEstimate(null);
+    const { data, error } = await supabase.functions.invoke("estimate-prices", {
+      body: { ingredients: recipe.ingredients },
+    });
+    setEstimating(false);
+    if (error || data?.error) return toast.error(data?.error ?? "Erro a estimar preços");
+    setEstimate(data.estimate);
+  };
 
   const showPlaces = mode === "dish" || mode === "surprise";
 
