@@ -11,8 +11,11 @@ import { toast } from "sonner";
 import { Sparkles, Loader2, MapPin, ExternalLink, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type Mode = "pantry" | "dish" | "surprise";
+import { Sparkles, Loader2, MapPin, ExternalLink, Star, Wallet, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface PriceItem { name: string; estimated_eur: number; note?: string }
+interface PriceEstimate { items: PriceItem[]; total_eur: number; disclaimer?: string }
 const PANTRY_SUGGESTIONS = ["ovos", "arroz", "massa", "tomate", "cebola", "alho", "frango", "batata", "atum", "feijão"];
 
 interface Place {
