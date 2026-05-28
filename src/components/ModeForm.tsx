@@ -8,8 +8,11 @@ import { RecipeDisplay, type Recipe } from "@/components/RecipeDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfilePrefs } from "@/components/DislikedIngredients";
 import { toast } from "sonner";
-import { Sparkles, Loader2, MapPin, ExternalLink, Star } from "lucide-react";
+import { Sparkles, Loader2, MapPin, ExternalLink, Star, Wallet, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface PriceItem { name: string; estimated_eur: number; note?: string }
+interface PriceEstimate { items: PriceItem[]; total_eur: number; disclaimer?: string }
 
 type Mode = "pantry" | "dish" | "surprise";
 
@@ -46,6 +49,20 @@ export function ModeForm({ mode }: { mode: Mode }) {
   const [findingPlaces, setFindingPlaces] = useState(false);
   const [userLoc, setUserLoc] = useState<{ latitude: number; longitude: number } | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("distance");
+  const [estimate, setEstimate] = useState<PriceEstimate | null>(null);
+  const [estimating, setEstimating] = useState(false);
+
+  const estimatePrices = async () => {
+    if (!recipe) return;
+    setEstimating(true);
+    setEstimate(null);
+    const { data, error } = await supabase.functions.invoke("estimate-prices", {
+      body: { ingredients: recipe.ingredients },
+    });
+    setEstimating(false);
+    if (error || data?.error) return toast.error(data?.error ?? "Erro a estimar preços");
+    setEstimate(data.estimate);
+  };
 
   const showPlaces = mode === "dish" || mode === "surprise";
 
@@ -147,57 +164,105 @@ export function ModeForm({ mode }: { mode: Mode }) {
         <RecipeDisplay
           recipe={recipe}
           extra={
-            showPlaces ? (
+            <div className="space-y-6">
+              {/* Price estimate */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <h3 className="font-display text-xl">Onde comprar perto de ti</h3>
-                  {places.length > 0 && (
-                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
-                      <SelectTrigger className="w-44">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="distance">Mais perto</SelectItem>
-                        <SelectItem value="rating">Melhor avaliados</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <h3 className="font-display text-xl">Custo estimado da lista</h3>
+                  {!estimate && (
+                    <Button onClick={estimatePrices} disabled={estimating} variant="outline" size="sm">
+                      {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+                      {estimating ? "A calcular..." : "Estimar preços"}
+                    </Button>
                   )}
                 </div>
-                {places.length === 0 ? (
-                  <Button onClick={findSupermarkets} disabled={findingPlaces} variant="outline">
-                    {findingPlaces ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                    {findingPlaces ? "A procurar..." : "Encontrar supermercados perto"}
-                  </Button>
-                ) : (
-                  <ul className="space-y-2">
-                    {sortedPlaces.map((p) => {
-                      const dist = userLoc && p.location ? distanceKm(userLoc, p.location) : null;
-                      return (
-                        <li key={p.id} className="flex justify-between items-start gap-3 p-3 rounded-md border bg-card">
-                          <div>
-                            <div className="font-medium">{p.displayName?.text}</div>
-                            <div className="text-sm text-muted-foreground">{p.formattedAddress}</div>
-                            <div className="text-xs flex items-center gap-3 mt-1 text-muted-foreground">
-                              {p.rating && (
-                                <span className="flex items-center gap-1">
-                                  <Star className="h-3 w-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
-                                </span>
-                              )}
-                              {dist !== null && <span>{dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`}</span>}
-                            </div>
-                          </div>
-                          {p.googleMapsUri && (
-                            <a href={p.googleMapsUri} target="_blank" rel="noreferrer" className="text-sm text-primary inline-flex items-center gap-1 shrink-0">
-                              Ver <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
+                {estimate && (
+                  <div className="rounded-md border bg-card p-3">
+                    <ul className="space-y-1 text-sm">
+                      {estimate.items.map((it, i) => (
+                        <li key={i} className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">
+                            {it.name}
+                            {it.note && <span className="text-xs"> ({it.note})</span>}
+                          </span>
+                          <span className="font-medium tabular-nums">{it.estimated_eur.toFixed(2)} €</span>
                         </li>
-                      );
-                    })}
-                  </ul>
+                      ))}
+                    </ul>
+                    <div className="flex justify-between border-t mt-2 pt-2 font-medium">
+                      <span>Total estimado</span>
+                      <span className="tabular-nums">{estimate.total_eur.toFixed(2)} €</span>
+                    </div>
+                    {estimate.disclaimer && (
+                      <p className="text-xs text-muted-foreground mt-2">{estimate.disclaimer}</p>
+                    )}
+                  </div>
                 )}
               </div>
-            ) : null
+
+              {/* Where to buy */}
+              {showPlaces && (
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                    <h3 className="font-display text-xl">Onde comprar perto de ti</h3>
+                    {places.length > 0 && (
+                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+                        <SelectTrigger className="w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="distance">Mais perto</SelectItem>
+                          <SelectItem value="rating">Melhor avaliados</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                  {places.length === 0 ? (
+                    <Button onClick={findSupermarkets} disabled={findingPlaces} variant="outline">
+                      {findingPlaces ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                      {findingPlaces ? "A procurar..." : "Encontrar supermercados perto"}
+                    </Button>
+                  ) : (
+                    <ul className="space-y-2">
+                      {sortedPlaces.map((p) => {
+                        const dist = userLoc && p.location ? distanceKm(userLoc, p.location) : null;
+                        const name = p.displayName?.text ?? "";
+                        const searchQuery = encodeURIComponent(
+                          `${name} ${recipe.ingredients.slice(0, 5).join(" ")}`,
+                        );
+                        const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+                        return (
+                          <li key={p.id} className="flex justify-between items-start gap-3 p-3 rounded-md border bg-card">
+                            <div className="min-w-0">
+                              <div className="font-medium">{name}</div>
+                              <div className="text-sm text-muted-foreground">{p.formattedAddress}</div>
+                              <div className="text-xs flex items-center gap-3 mt-1 text-muted-foreground">
+                                {p.rating && (
+                                  <span className="flex items-center gap-1">
+                                    <Star className="h-3 w-3 fill-accent text-accent" /> {p.rating.toFixed(1)}
+                                  </span>
+                                )}
+                                {dist !== null && <span>{dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`}</span>}
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1 items-end shrink-0">
+                              {p.googleMapsUri && (
+                                <a href={p.googleMapsUri} target="_blank" rel="noreferrer" className="text-sm text-primary inline-flex items-center gap-1">
+                                  Ver <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                              <a href={searchUrl} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
+                                <Search className="h-3 w-3" /> Procurar lista
+                              </a>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
           }
         />
       )}
