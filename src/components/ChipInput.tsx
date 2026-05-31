@@ -51,7 +51,7 @@ export function ChipInput({ value, onChange, placeholder, suggestions }: Props) 
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKey}
         onBlur={() => draft && add(draft)}
-        placeholder={placeholder ?? "Escreve e pressiona Enter"}
+        placeholder={placeholder ?? t("typeAndEnter")}
         maxLength={60}
       />
       {suggestions && suggestions.length > 0 && (
