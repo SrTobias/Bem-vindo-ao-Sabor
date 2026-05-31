@@ -75,8 +75,8 @@ function AuthPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pt">PT-PT</SelectItem>
-                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="pt">{t("langPt")}</SelectItem>
+                <SelectItem value="en">{t("langEn")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

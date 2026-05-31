@@ -1,6 +1,7 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useLang } from "@/lib/i18n";
 import { X } from "lucide-react";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function ChipInput({ value, onChange, placeholder, suggestions }: Props) {
+  const { t } = useLang();
   const [draft, setDraft] = useState("");
 
   const add = (raw: string) => {
@@ -49,7 +51,7 @@ export function ChipInput({ value, onChange, placeholder, suggestions }: Props) 
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKey}
         onBlur={() => draft && add(draft)}
-        placeholder={placeholder ?? "Escreve e pressiona Enter"}
+        placeholder={placeholder ?? t("typeAndEnter")}
         maxLength={60}
       />
       {suggestions && suggestions.length > 0 && (

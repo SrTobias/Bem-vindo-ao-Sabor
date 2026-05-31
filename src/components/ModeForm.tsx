@@ -7,6 +7,7 @@ import { ChipInput } from "@/components/ChipInput";
 import { RecipeDisplay, type Recipe } from "@/components/RecipeDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfilePrefs } from "@/components/DislikedIngredients";
+import { useLang } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Sparkles, Loader2, MapPin, ExternalLink, Star, Wallet, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +42,7 @@ function distanceKm(a: { latitude: number; longitude: number }, b: { latitude: n
 
 export function ModeForm({ mode }: { mode: Mode }) {
   const { disliked, diet } = useProfilePrefs();
+  const { t } = useLang();
   const [pantry, setPantry] = useState<string[]>([]);
   const [dish, setDish] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,15 +62,15 @@ export function ModeForm({ mode }: { mode: Mode }) {
       body: { ingredients: recipe.ingredients },
     });
     setEstimating(false);
-    if (error || data?.error) return toast.error(data?.error ?? "Erro a estimar preços");
+    if (error || data?.error) return toast.error(data?.error ?? t("priceError"));
     setEstimate(data.estimate);
   };
 
   const showPlaces = mode === "dish" || mode === "surprise";
 
   const generate = async () => {
-    if (mode === "pantry" && pantry.length === 0) return toast.error("Adiciona alguns ingredientes");
-    if (mode === "dish" && !dish.trim()) return toast.error("Diz que prato queres");
+    if (mode === "pantry" && pantry.length === 0) return toast.error(t("addSomeIngredients"));
+    if (mode === "dish" && !dish.trim()) return toast.error(t("sayWhichDish"));
     setLoading(true);
     setRecipe(null);
     setPlaces([]);
@@ -77,14 +79,14 @@ export function ModeForm({ mode }: { mode: Mode }) {
     });
     setLoading(false);
     if (error || data?.error) {
-      toast.error(data?.error ?? "Erro ao gerar receita");
+      toast.error(data?.error ?? t("recipeError"));
       return;
     }
     setRecipe(data.recipe);
   };
 
   const findSupermarkets = () => {
-    if (!navigator.geolocation) return toast.error("Geolocalização indisponível");
+    if (!navigator.geolocation) return toast.error(t("geoUnavailable"));
     setFindingPlaces(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -93,13 +95,13 @@ export function ModeForm({ mode }: { mode: Mode }) {
           body: { latitude: pos.coords.latitude, longitude: pos.coords.longitude, radius: 5000 },
         });
         setFindingPlaces(false);
-        if (error || data?.error) return toast.error(data?.error ?? "Erro a procurar supermercados");
+        if (error || data?.error) return toast.error(data?.error ?? t("supermarketError"));
         setPlaces(data.places ?? []);
-        if ((data.places ?? []).length === 0) toast.info("Sem supermercados perto.");
+        if ((data.places ?? []).length === 0) toast.info(t("noSupermarkets"));
       },
       () => {
         setFindingPlaces(false);
-        toast.error("Não foi possível obter localização");
+        toast.error(t("noLocation"));
       },
     );
   };
@@ -118,44 +120,44 @@ export function ModeForm({ mode }: { mode: Mode }) {
         <CardHeader>
           {mode === "pantry" && (
             <>
-              <CardTitle className="font-display text-2xl">O que tens em casa?</CardTitle>
-              <CardDescription>Adiciona os ingredientes disponíveis e a IA sugere um prato.</CardDescription>
+              <CardTitle className="font-display text-2xl">{t("pantryTitle")}</CardTitle>
+              <CardDescription>{t("pantryDesc")}</CardDescription>
             </>
           )}
           {mode === "dish" && (
             <>
-              <CardTitle className="font-display text-2xl">Que prato queres comer?</CardTitle>
-              <CardDescription>Damos a receita e mostramos onde comprar os ingredientes perto de ti.</CardDescription>
+              <CardTitle className="font-display text-2xl">{t("dishTitle")}</CardTitle>
+              <CardDescription>{t("dishDesc")}</CardDescription>
             </>
           )}
           {mode === "surprise" && (
             <>
-              <CardTitle className="font-display text-2xl">Surpreende-me!</CardTitle>
-              <CardDescription>A IA vai escolher um prato delicioso para ti.</CardDescription>
+              <CardTitle className="font-display text-2xl">{t("surpriseTitle")}</CardTitle>
+              <CardDescription>{t("surpriseDesc")}</CardDescription>
             </>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
           {mode === "pantry" && (
             <div>
-              <Label className="mb-2 block">Ingredientes em casa</Label>
-              <ChipInput value={pantry} onChange={setPantry} placeholder="ex: ovos, arroz, tomate" suggestions={PANTRY_SUGGESTIONS} />
+              <Label className="mb-2 block">{t("ingredientsHome")}</Label>
+              <ChipInput value={pantry} onChange={setPantry} placeholder={t("pantryPlaceholder")} suggestions={PANTRY_SUGGESTIONS} />
             </div>
           )}
           {mode === "dish" && (
             <div>
-              <Label className="mb-2 block" htmlFor="dish">Nome do prato</Label>
-              <Input id="dish" value={dish} onChange={(e) => setDish(e.target.value)} placeholder="ex: bacalhau à brás" maxLength={200} />
+              <Label className="mb-2 block" htmlFor="dish">{t("dishName")}</Label>
+              <Input id="dish" value={dish} onChange={(e) => setDish(e.target.value)} placeholder={t("dishPlaceholder")} maxLength={200} />
             </div>
           )}
           {disliked.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              A evitar: {disliked.join(", ")}
+              {t("avoiding")}: {disliked.join(", ")}
             </p>
           )}
           <Button onClick={generate} disabled={loading} size="lg" className="w-full sm:w-auto">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {loading ? "A cozinhar ideias..." : "Gerar receita"}
+            {loading ? t("cooking") : t("generateRecipe")}
           </Button>
         </CardContent>
       </Card>
@@ -168,11 +170,11 @@ export function ModeForm({ mode }: { mode: Mode }) {
               {/* Price estimate */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <h3 className="font-display text-xl">Custo estimado da lista</h3>
+                  <h3 className="font-display text-xl">{t("estimatedCost")}</h3>
                   {!estimate && (
                     <Button onClick={estimatePrices} disabled={estimating} variant="outline" size="sm">
                       {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-                      {estimating ? "A calcular..." : "Estimar preços"}
+                      {estimating ? t("calculating") : t("estimatePrices")}
                     </Button>
                   )}
                 </div>
@@ -190,7 +192,7 @@ export function ModeForm({ mode }: { mode: Mode }) {
                       ))}
                     </ul>
                     <div className="flex justify-between border-t mt-2 pt-2 font-medium">
-                      <span>Total estimado</span>
+                      <span>{t("totalEstimated")}</span>
                       <span className="tabular-nums">{estimate.total_eur.toFixed(2)} €</span>
                     </div>
                     {estimate.disclaimer && (
@@ -204,15 +206,15 @@ export function ModeForm({ mode }: { mode: Mode }) {
               {showPlaces && (
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                    <h3 className="font-display text-xl">Onde comprar perto de ti</h3>
+                    <h3 className="font-display text-xl">{t("whereToBuy")}</h3>
                     {places.length > 0 && (
                       <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
                         <SelectTrigger className="w-44">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="distance">Mais perto</SelectItem>
-                          <SelectItem value="rating">Melhor avaliados</SelectItem>
+                          <SelectItem value="distance">{t("closest")}</SelectItem>
+                          <SelectItem value="rating">{t("bestRated")}</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -220,7 +222,7 @@ export function ModeForm({ mode }: { mode: Mode }) {
                   {places.length === 0 ? (
                     <Button onClick={findSupermarkets} disabled={findingPlaces} variant="outline">
                       {findingPlaces ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                      {findingPlaces ? "A procurar..." : "Encontrar supermercados perto"}
+                      {findingPlaces ? t("searching") : t("findSupermarkets")}
                     </Button>
                   ) : (
                     <ul className="space-y-2">
@@ -248,11 +250,11 @@ export function ModeForm({ mode }: { mode: Mode }) {
                             <div className="flex flex-col gap-1 items-end shrink-0">
                               {p.googleMapsUri && (
                                 <a href={p.googleMapsUri} target="_blank" rel="noreferrer" className="text-sm text-primary inline-flex items-center gap-1">
-                                  Ver <ExternalLink className="h-3 w-3" />
+                                  {t("view")} <ExternalLink className="h-3 w-3" />
                                 </a>
                               )}
                               <a href={searchUrl} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
-                                <Search className="h-3 w-3" /> Procurar lista
+                                <Search className="h-3 w-3" /> {t("searchList")}
                               </a>
                             </div>
                           </li>

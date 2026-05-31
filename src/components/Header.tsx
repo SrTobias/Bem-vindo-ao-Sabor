@@ -2,11 +2,13 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLang } from "@/lib/i18n";
 import { ChefHat, Heart, LogOut, User } from "lucide-react";
 
 export function Header() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLang();
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -24,10 +26,10 @@ export function Header() {
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/favorites"><Heart className="h-4 w-4" /> Favoritos</Link>
+                <Link to="/favorites"><Heart className="h-4 w-4" /> {t("favorites")}</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/profile"><User className="h-4 w-4" /> Perfil</Link>
+                <Link to="/profile"><User className="h-4 w-4" /> {t("profile")}</Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="h-4 w-4" />
@@ -35,7 +37,7 @@ export function Header() {
             </>
           ) : (
             <Button size="sm" asChild>
-              <Link to="/auth">Entrar</Link>
+              <Link to="/auth">{t("signIn")}</Link>
             </Button>
           )}
         </nav>
