@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { syncUserLanguage } from "@/lib/i18n";
 import type { Session, User } from "@supabase/supabase-js";
 
 export function useAuth() {
@@ -9,13 +10,17 @@ export function useAuth() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_evt, s) => {
       setSession(s);
       setUser(s?.user ?? null);
+      // Sync language when auth state changes
+      await syncUserLanguage(s?.user ?? null);
     });
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
+      // Sync language on initial load
+      await syncUserLanguage(data.session?.user ?? null);
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
