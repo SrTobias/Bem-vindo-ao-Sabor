@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { DislikedIngredients } from "@/components/DislikedIngredients";
 import { DietSelector } from "@/components/DietSelector";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { useLang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, User } from "lucide-react";
 
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/profile")({ component: ProfilePage, ssr: 
 function ProfilePage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLang();
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -31,19 +33,19 @@ function ProfilePage() {
       <Header />
       <main className="container mx-auto px-4 py-10 max-w-3xl space-y-6">
         <section className="space-y-2">
-          <h1 className="font-display text-4xl">O teu perfil</h1>
-          <p className="text-muted-foreground">Gere as tuas preferências alimentares.</p>
+          <h1 className="font-display text-4xl">{t("profileTitle")}</h1>
+          <p className="text-muted-foreground">{t("profileSub")}</p>
         </section>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <User className="h-5 w-5 text-primary" />
-              Conta
+              {t("account")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Email: {user.email}</p>
+            <p className="text-sm text-muted-foreground">{t("email")}: {user.email}</p>
           </CardContent>
         </Card>
 

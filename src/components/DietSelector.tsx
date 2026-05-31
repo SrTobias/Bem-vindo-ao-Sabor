@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Salad } from "lucide-react";
 
-const DIET_OPTIONS = [
-  { value: "omnivore", label: "Omnívoro (como de tudo)", description: "Carne, peixe, laticínios e vegetais" },
-  { value: "vegetarian", label: "Vegetariano", description: "Sem carne nem peixe, mas pode incluir ovos e laticínios" },
-  { value: "vegan", label: "Vegano", description: "Apenas ingredientes de origem vegetal" },
-] as const;
-
 export type Diet = "omnivore" | "vegetarian" | "vegan";
 
 export function DietSelector() {
   const { user } = useAuth();
+  const { t } = useLang();
   const [diet, setDiet] = useState<Diet>("omnivore");
   const [loading, setLoading] = useState(false);
+
+  const DIET_OPTIONS = [
+    { value: "omnivore" as Diet, label: t("dietOmnivore"), description: t("dietOmnivoreDesc") },
+    { value: "vegetarian" as Diet, label: t("dietVegetarian"), description: t("dietVegetarianDesc") },
+    { value: "vegan" as Diet, label: t("dietVegan"), description: t("dietVeganDesc") },
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -39,8 +41,8 @@ export function DietSelector() {
       .update({ diet })
       .eq("user_id", user.id);
     setLoading(false);
-    if (error) toast.error("Erro a guardar dieta");
-    else toast.success("Dieta guardada");
+    if (error) toast.error(t("dietError"));
+    else toast.success(t("dietSaved"));
   };
 
   return (
@@ -48,13 +50,11 @@ export function DietSelector() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-xl">
           <Salad className="h-5 w-5 text-primary" />
-          Tipo de dieta
+          {t("dietType")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Escolhe o teu regime alimentar para que as receitas sugeridas respeitem as tuas preferências.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("dietDesc")}</p>
         <div className="space-y-2">
           {DIET_OPTIONS.map((option) => (
             <label
@@ -81,7 +81,7 @@ export function DietSelector() {
           ))}
         </div>
         <Button onClick={save} disabled={loading} size="sm">
-          {loading ? "A guardar..." : "Guardar dieta"}
+          {loading ? t("savingDiet") : t("saveDiet")}
         </Button>
       </CardContent>
     </Card>

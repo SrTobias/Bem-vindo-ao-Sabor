@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLang } from "@/lib/i18n";
 import { ChipInput } from "@/components/ChipInput";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ const COMMON = ["cogumelos", "coentros", "azeitonas", "anchovas", "queijo azul",
 
 export function DislikedIngredients() {
   const { user } = useAuth();
+  const { t } = useLang();
   const [list, setList] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -34,8 +36,8 @@ export function DislikedIngredients() {
       .update({ disliked_ingredients: list })
       .eq("user_id", user.id);
     setLoading(false);
-    if (error) toast.error("Erro a guardar");
-    else toast.success("Preferências guardadas");
+    if (error) toast.error(t("saveError"));
+    else toast.success(t("prefsSaved"));
   };
 
   return (
@@ -43,16 +45,14 @@ export function DislikedIngredients() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-xl">
           <Ban className="h-5 w-5 text-primary" />
-          Ingredientes que não gostas
+          {t("dislikedTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          Estes ingredientes serão sempre evitados nas sugestões.
-        </p>
-        <ChipInput value={list} onChange={setList} placeholder="ex: coentros" suggestions={COMMON} />
+        <p className="text-sm text-muted-foreground">{t("dislikedDesc")}</p>
+        <ChipInput value={list} onChange={setList} placeholder={t("dislikedPlaceholder")} suggestions={COMMON} />
         <Button onClick={save} disabled={loading} size="sm">
-          {loading ? "A guardar..." : "Guardar preferências"}
+          {loading ? t("saving") : t("savePrefs")}
         </Button>
       </CardContent>
     </Card>

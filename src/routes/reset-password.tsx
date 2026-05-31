@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/reset-password")({ component: ResetPasswo
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const { t } = useLang();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
@@ -24,16 +26,16 @@ function ResetPasswordPage() {
       supabase.auth.getSession().then(({ data }) => {
         if (data.session) setReady(true);
         else {
-          toast.error("Link inválido ou expirado");
+          toast.error(t("invalidLink"));
           navigate({ to: "/auth" });
         }
       });
     }
-  }, [navigate]);
+  }, [navigate, t]);
 
   const update = async () => {
     if (password.length < 6) {
-      toast.error("Mínimo 6 caracteres");
+      toast.error(t("minChars"));
       return;
     }
     setBusy(true);
@@ -41,7 +43,7 @@ function ResetPasswordPage() {
     setBusy(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Palavra-passe atualizada!");
+      toast.success(t("passwordUpdated"));
       navigate({ to: "/" });
     }
   };
@@ -53,16 +55,16 @@ function ResetPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2"><ChefHat className="h-10 w-10 text-primary" /></div>
-          <CardTitle className="font-display text-3xl">Nova palavra-passe</CardTitle>
-          <CardDescription>Define a tua nova palavra-passe.</CardDescription>
+          <CardTitle className="font-display text-3xl">{t("newPassword")}</CardTitle>
+          <CardDescription>{t("newPasswordSub")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <Label>Nova palavra-passe</Label>
+            <Label>{t("newPassword")}</Label>
             <Input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6} />
           </div>
           <Button className="w-full" onClick={update} disabled={busy}>
-            {busy ? "..." : "Atualizar palavra-passe"}
+            {busy ? "..." : t("updatePassword")}
           </Button>
         </CardContent>
       </Card>

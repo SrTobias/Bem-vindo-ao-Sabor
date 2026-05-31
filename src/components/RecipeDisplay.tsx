@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Heart, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLang } from "@/lib/i18n";
 import { toast } from "sonner";
 
 export interface Recipe {
@@ -18,9 +19,10 @@ export interface Recipe {
 
 export function RecipeDisplay({ recipe, extra }: { recipe: Recipe; extra?: React.ReactNode }) {
   const { user } = useAuth();
+  const { t } = useLang();
 
   const save = async () => {
-    if (!user) return toast.error("Precisas de iniciar sessão");
+    if (!user) return toast.error(t("needLogin"));
     const { error } = await supabase.from("favorites").insert({
       user_id: user.id,
       title: recipe.title,
@@ -28,8 +30,8 @@ export function RecipeDisplay({ recipe, extra }: { recipe: Recipe; extra?: React
       ingredients: recipe.ingredients,
       instructions: recipe.instructions,
     });
-    if (error) toast.error("Erro a guardar");
-    else toast.success("Adicionado aos favoritos");
+    if (error) toast.error(t("saveError"));
+    else toast.success(t("savedToFavorites"));
   };
 
   return (
@@ -45,7 +47,7 @@ export function RecipeDisplay({ recipe, extra }: { recipe: Recipe; extra?: React
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={save}>
-            <Heart className="h-4 w-4" /> Guardar
+            <Heart className="h-4 w-4" /> {t("save")}
           </Button>
         </div>
       </CardHeader>
@@ -54,7 +56,7 @@ export function RecipeDisplay({ recipe, extra }: { recipe: Recipe; extra?: React
           <div className="flex gap-2 items-start p-3 rounded-md bg-accent/30 border border-accent">
             <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-sm">Faltam estes ingredientes:</p>
+              <p className="font-medium text-sm">{t("missingIngredients")}</p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {recipe.missing_ingredients.map((i) => <Badge key={i} variant="outline">{i}</Badge>)}
               </div>
@@ -63,7 +65,7 @@ export function RecipeDisplay({ recipe, extra }: { recipe: Recipe; extra?: React
         )}
 
         <div>
-          <h3 className="font-display text-xl mb-2">Ingredientes</h3>
+          <h3 className="font-display text-xl mb-2">{t("ingredients")}</h3>
           <ul className="space-y-1">
             {recipe.ingredients.map((i, idx) => (
               <li key={idx} className="flex gap-2"><span className="text-accent-foreground">·</span>{i}</li>
@@ -72,7 +74,7 @@ export function RecipeDisplay({ recipe, extra }: { recipe: Recipe; extra?: React
         </div>
 
         <div>
-          <h3 className="font-display text-xl mb-2">Preparação</h3>
+          <h3 className="font-display text-xl mb-2">{t("preparation")}</h3>
           <ol className="space-y-3">
             {recipe.instructions.map((step, idx) => (
               <li key={idx} className="flex gap-3">

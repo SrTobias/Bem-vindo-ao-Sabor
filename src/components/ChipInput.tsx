@@ -1,6 +1,7 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useLang } from "@/lib/i18n";
 import { X } from "lucide-react";
 
 interface Props {

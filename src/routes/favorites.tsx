@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
+import { useLang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, Heart } from "lucide-react";
@@ -22,6 +23,7 @@ type Favorite = {
 function FavoritesPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLang();
   const [favs, setFavs] = useState<Favorite[]>([]);
   const [fetching, setFetching] = useState(true);
 
@@ -47,7 +49,7 @@ function FavoritesPage() {
     if (error) toast.error(error.message);
     else {
       setFavs((f) => f.filter((x) => x.id !== id));
-      toast.success("Receita removida");
+      toast.success(t("favRemoved"));
     }
   };
 
@@ -64,15 +66,15 @@ function FavoritesPage() {
       <Header />
       <main className="container mx-auto px-4 py-10 max-w-3xl space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="font-display text-4xl md:text-5xl">As tuas receitas favoritas</h1>
-          <p className="text-muted-foreground">Tudo o que guardaste, num só sítio.</p>
+          <h1 className="font-display text-4xl md:text-5xl">{t("favTitle")}</h1>
+          <p className="text-muted-foreground">{t("favSub")}</p>
         </div>
 
         {favs.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <Heart className="h-10 w-10 mx-auto mb-3 opacity-40" />
-              Ainda não tens favoritos. Gera uma receita e guarda-a!
+              {t("favEmpty")}
             </CardContent>
           </Card>
         ) : (
@@ -90,13 +92,13 @@ function FavoritesPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h3 className="font-semibold mb-2">Ingredientes</h3>
+                    <h3 className="font-semibold mb-2">{t("ingredients")}</h3>
                     <ul className="list-disc pl-5 text-sm space-y-1">
                       {f.ingredients.map((i, idx) => <li key={idx}>{i}</li>)}
                     </ul>
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Preparação</h3>
+                    <h3 className="font-semibold mb-2">{t("preparation")}</h3>
                     <ol className="list-decimal pl-5 text-sm space-y-1">
                       {f.instructions.map((s, idx) => <li key={idx}>{s}</li>)}
                     </ol>
