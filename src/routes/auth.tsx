@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ChefHat, Loader2, Languages } from "lucide-react";
-import { useLang, type Lang } from "@/lib/i18n";
+import { useLang, type Lang, saveUserLanguage } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage, ssr: false });
 
@@ -62,6 +62,14 @@ function AuthPage() {
     if (r.error) toast.error(t("googleError"));
   };
 
+  const handleLanguageChange = async (newLang: Lang) => {
+    setLang(newLang);
+    // Save to database if user is logged in
+    if (user) {
+      await saveUserLanguage(user, newLang);
+    }
+  };
+
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
   return (
@@ -70,7 +78,7 @@ function AuthPage() {
         <CardHeader className="text-center relative">
           <div className="absolute right-4 top-4 flex items-center gap-1.5">
             <Languages className="h-4 w-4 text-muted-foreground" />
-            <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
+            <Select value={lang} onValueChange={(v) => handleLanguageChange(v as Lang)}>
               <SelectTrigger className="h-8 w-[90px] text-xs">
                 <SelectValue />
               </SelectTrigger>
