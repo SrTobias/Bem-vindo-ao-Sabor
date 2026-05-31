@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 export type Lang = "pt" | "en";
 
@@ -260,6 +262,50 @@ export function setLang(lang: Lang) {
 function subscribe(cb: () => void) {
   listeners.add(cb);
   return () => listeners.delete(cb);
+}
+
+/**
+ * Sync user language from database to localStorage and listeners
+ * Call this after user login to load their preferred language
+ */
+export async function syncUserLanguage(user: User | null) {
+  if (!user) {
+    // Clear on logout
+    window.localStorage.removeItem(KEY);
+    listeners.forEach((l) => l());
+    return;
+  }
+
+  try {
+    const { data } = await supabase
+      .from("profiles")
+      .select("language")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (data?.language) {
+      const lang = (data.language === "en" ? "en" : "pt") as Lang;
+      setLang(lang);
+    }
+  } catch (error) {
+    console.error("Failed to sync user language:", error);
+  }
+}
+
+/**
+ * Save current language to user profile in database
+ */
+export async function saveUserLanguage(user: User | null, lang: Lang) {
+  if (!user) return;
+
+  try {
+    await supabase
+      .from("profiles")
+      .update({ language: lang })
+      .eq("user_id", user.id);
+  } catch (error) {
+    console.error("Failed to save user language:", error);
+  }
 }
 
 export function useLang() {
