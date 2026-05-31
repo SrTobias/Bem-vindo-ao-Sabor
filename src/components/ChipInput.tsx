@@ -12,6 +12,7 @@ interface Props {
 }
 
 export function ChipInput({ value, onChange, placeholder, suggestions }: Props) {
+  const { t } = useLang();
   const [draft, setDraft] = useState("");
 
   const add = (raw: string) => {
